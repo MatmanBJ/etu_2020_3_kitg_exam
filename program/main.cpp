@@ -1,7 +1,7 @@
 //
 //  main.cpp
 //  Alternative exam
-//  version release 2.0
+//  version release 2.1
 //  Created by Matthew Sobolev
 //  Team: Sobolev Matvey, Stepovik Viktor, Kashapova Olga
 
@@ -21,13 +21,17 @@ using namespace std;
 // 32 -> 10, 10 -> 32
 
 const int rows = 32; // general number of rows in array (number of items)
-const int columns = 10; // general number of columns in array (number of knapsacks)
+const int columns = 11; // general number of columns in array (number of knapsacks)
 const int max_bin_sizes = 30; // maximal sizes for bins (days for workers)
 const int jobs_number = 32; // general number of jobs (translations)
-const int workers_number = 10; // general number of workers (translators)
+const int workers_number = 11; // general number of workers (translators)
 const int languages_number = 7; // general number of languages
+
+// VALUABLE VARIABLES
+
 int work_hours = 0; // number for the work hours coefficient switch case
-int work_task = 9; // number for the task switch case
+int work_task = 0; // number for the task switch case
+int work_function = 0; // number for the forming profit function
 
 // FUNCTION PROTOTYPES
 
@@ -67,9 +71,12 @@ public:
     void forming_profit();
     void forming_profit_reversive();
     void output_current();
+    void find_invalid();
     void output_result();
     void algorithm_one();
     void algorithm_two();
+    void algorithm_one_custom();
+    void algorithm_two_custom();
     void algorithm_reversive();
     
     Approximation_algorithm();
@@ -219,8 +226,8 @@ void Approximation_algorithm :: forming_profit()
                 }
             }
             break;
-        case 2: // 24-hours work day (Nanomachines, son©)
-            cout << "---------- 24-hours work day (Nanomachines, son©) ----------" << endl;
+        case 2: // 24-hours work day
+            cout << "---------- 24-hours work day ----------" << endl;
             for (i = 1; i <= workers_number; i++)
             {
                 workers_s_float[i] = new float[languages_number + 1];
@@ -256,12 +263,34 @@ void Approximation_algorithm :: forming_profit()
                     if (workers_s[j][jobs[1][i]] != 0)
                     {
                         item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
+                        cout << item_sizes[i][j] << " ";
                     }
                     else
                     {
                         item_sizes[i][j] = bin_sizes[j] + 1;
                     }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                    switch (work_function)
+                    {
+                        case 1:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                        case 2:
+                            profit_function[i][j] = item_sizes[i][j];
+                            break;
+                        case 3:
+                            profit_function[i][j] = (workers_s[j][jobs[1][i]]);
+                            break;
+                        case 4:
+                            profit_function[i][j] = jobs[2][i];
+                            break;
+                        default:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                    }
                 }
             }
             break;
@@ -279,7 +308,24 @@ void Approximation_algorithm :: forming_profit()
                     {
                         item_sizes[i][j] = bin_sizes[j] + 1;
                     }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                    switch (work_function)
+                    {
+                        case 1:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                        case 2:
+                            profit_function[i][j] = item_sizes[i][j];
+                            break;
+                        case 3:
+                            profit_function[i][j] = (workers_s[j][jobs[1][i]]);
+                            break;
+                        case 4:
+                            profit_function[i][j] = jobs[2][i];
+                            break;
+                        default:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                    }
                 }
             }
             break;
@@ -333,7 +379,24 @@ void Approximation_algorithm :: forming_profit()
                     {
                         item_sizes[i][j] = bin_sizes[j] + 1;
                     }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                    switch (work_function)
+                    {
+                        case 1:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                        case 2:
+                            profit_function[i][j] = item_sizes[i][j];
+                            break;
+                        case 3:
+                            profit_function[i][j] = (workers_s[j][jobs[1][i]]);
+                            break;
+                        case 4:
+                            profit_function[i][j] = jobs[2][i];
+                            break;
+                        default:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                    }
                 }
             }
             break;
@@ -398,9 +461,45 @@ void Approximation_algorithm :: forming_profit()
             cout << "Not realised" << endl;
             break;
         case 11: // the minimum time for completing all tasks with the involvement of the deputy head of the department is not more than 4 hours on a standard working day (if the importance of task 3, you can use the maximum)
-            cout << "Not realised" << endl;
+            cout << "---------- The minimum time for completing all tasks (deputy chief 4-hours day (without 3 importance)) ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((j == 2 || j == 9) && jobs[4][i] != 3)
+                        {
+                            item_sizes[i][j] = 2*item_sizes[i][j]; // 4-hours work day
+                        }
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    switch (work_function)
+                    {
+                        case 1:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                        case 2:
+                            profit_function[i][j] = item_sizes[i][j];
+                            break;
+                        case 3:
+                            profit_function[i][j] = (workers_s[j][jobs[1][i]]);
+                            break;
+                        case 4:
+                            profit_function[i][j] = jobs[2][i];
+                            break;
+                        default:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                    }
+                }
+            }
             break;
-        case 12:
+        /*case 12:
             cout << "---------- Distribution depending on deadline of taks ----------" << endl;
             for (i = 1; i <= workers_number; i++)
             {
@@ -417,9 +516,41 @@ void Approximation_algorithm :: forming_profit()
                     profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
                 }
             }
-            break;
-        default: // standart work of the algorithm
-            cout << "Doesn't exist" << endl;
+            break;*/
+        default: // standart work of the algorithm (case 1: minimal time to do all the tasks)
+            cout << "---------- Minimal time to do all the tasks ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    switch (work_function)
+                    {
+                        case 1:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                        case 2:
+                            profit_function[i][j] = item_sizes[i][j];
+                            break;
+                        case 3:
+                            profit_function[i][j] = (workers_s[j][jobs[1][i]]);
+                            break;
+                        case 4:
+                            profit_function[i][j] = jobs[2][i];
+                            break;
+                        default:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                    }
+                }
+            }
             break;
     }
 }
@@ -871,16 +1002,14 @@ void Approximation_algorithm :: output_current()
     cout << endl;
 }
 
-// ----------------------------------------------------
-// ---------- RESULT OUTPUT AND CLEAN MEMORY ----------
-// ----------------------------------------------------
+// ---------------------------------------------------
+// ---------- SETTING TO NULL INVALID ITEMS ----------
+// ---------------------------------------------------
 
-void Approximation_algorithm :: output_result()
+void Approximation_algorithm :: find_invalid()
 {
     int i;
     int j;
-    
-    // SETTING TO NULL INVALID ITEMS
     
     for (i = rows; i >= 1; i--)
     {
@@ -895,6 +1024,20 @@ void Approximation_algorithm :: output_result()
             }
         }
     }
+}
+
+// ----------------------------------------------------
+// ---------- RESULT OUTPUT AND CLEAN MEMORY ----------
+// ----------------------------------------------------
+
+void Approximation_algorithm :: output_result()
+{
+    int i;
+    int j;
+    
+    // SETTING TO NULL INVALID ITEMS
+    
+    find_invalid();
     
     // OUTPUT AN ARRAY OF CHOSED ITEMS
     
@@ -917,9 +1060,13 @@ void Approximation_algorithm :: output_result()
         {
             answer = answer + b;
         }
-        if (work_task != 6 && work_task != 4 && a > answer)
+        if (work_task != 6 && work_task != 4)
         {
-            answer = a;
+            cout << "(" << a << " days)";
+            if (a > answer)
+            {
+                answer = a;
+            }
         }
         cout << endl;
     }
@@ -1287,14 +1434,288 @@ void Approximation_algorithm :: algorithm_two()
     delete [] Weight;
 }
 
+// -----------------------------------------------------------
+// ---------- KNAPSACK PROBLEM CUSTOM ALGORITHM (1) ----------
+// -----------------------------------------------------------
+
+void Approximation_algorithm :: algorithm_one_custom()
+{
+    int i;
+    int j;
+    
+    int **isin = new int*[rows + 1];
+    int **isin_row = new int*[rows + 1];
+    int **isin_step = new int*[rows + 1];
+    int **Weight = new int*[rows + 1];
+    
+    for (i = 0; i <= rows; i++)
+    {
+        isin[i] = new int[max_bin_sizes + 1];
+        isin_row[i] = new int[max_bin_sizes + 1];
+        isin_step[i] = new int[max_bin_sizes + 1];
+        Weight[i] = new int[max_bin_sizes + 1];
+    }
+    
+    int profit_function_modified_one [rows + 1][columns + 1]; // work function
+    int profit_function_modified_two [rows + 1][columns + 1]; // work function
+    
+    // SETTIN' TO INITIAL ARRAY VALUES WORK ARRAYS
+    
+    for (i = 0; i <= rows; i++)
+    {
+        for (j = 0; j <= columns; j++)
+        {
+            profit_function_modified_one[i][j] = profit_function[i][j];
+            profit_function_modified_two[i][j] = profit_function[i][j];
+        }
+    }
+    
+    for (x = 1; x <= columns; x++)
+    {
+        for (i = 0; i <= bin_sizes[x]; i++)
+        {
+            isin[0][i] = 0;
+            Weight[0][i] = 0;
+        }
+        for (i = 1; i <= rows; i++)
+        {
+            for (j = 0; j <= bin_sizes[x]; j++)
+            {
+                if (item_sizes[i][x] > j)
+                {
+                    Weight[i][j] = Weight[i - 1][j];
+                    isin_row[i][j] = isin_row[i - 1][j];
+                    isin_step[i][j] = isin_step[i - 1][j];
+                    isin[i][j] = isin[i - 1][j];
+                }
+                else
+                {
+                    Weight[i][j] = fmax(Weight[i - 1][j], Weight[i - 1][j - item_sizes[i][x]] + profit_function_modified_two[i][x]);
+                    if (Weight[i - 1][j] >= Weight[i - 1][j - item_sizes[i][x]] + profit_function_modified_two[i][x])
+                    {
+                        isin_row[i][j] = isin_row[i - 1][j];
+                        isin_step[i][j] = isin_step[i - 1][j];
+                        isin[i][j] = isin[i - 1][j];
+                    }
+                    else
+                    {
+                        isin_row[i][j] = i - 1;
+                        isin_step[i][j] = j - item_sizes[i][x];
+                        isin[i][j] = i;
+                    }
+                }
+            }
+        }
+        
+        // FINDING CHOOSED ITEMS (WITH MY "CHAIN METHOD")
+        
+        for (i = 0; i <= rows; i++)
+        {
+            S[i][x] = 0;
+        }
+        
+        current_value = isin[rows][bin_sizes[x]]; // last added item number in array
+        current_row = isin_row[rows][bin_sizes[x]]; // last added BEFORE last added in array ROW
+        current_step = isin_step[rows][bin_sizes[x]]; // last added BEFORE last added in array COLUMN
+        
+        while (current_value != 0) // restore item numbers with my "chain method"
+        {
+            S[current_value][x] = 1;
+            current_value = isin[current_row][current_step];
+            int a = isin_row[current_row][current_step];
+            current_step = isin_step[current_row][current_step];
+            current_row = a;
+        }
+        
+        // WORK PROFIT FUNCTIONS UPDATING AND OUTPUT
+        
+        for (i = x; i <= columns; i++)
+        {
+            if (i != x)
+            {
+                for (j = 1; j <= rows; j++)
+                {
+                    profit_function_modified_one[j][i] = 0; // j and i, not i and j
+                }
+            }
+        }
+        for (i = 1; i <= rows; i++)
+        {
+            if (S[i][x] != 1)
+            {
+                for (j = x; j <= columns; j++)
+                {
+                    profit_function_modified_one[i][j] = 0;
+                }
+            }
+        }
+        
+        for (i = x; i <= columns; i++)
+        {
+            if (i == x)
+            {
+                for (j = 1; j <= rows; j++)
+                {
+                    profit_function_modified_one[j][i] = profit_function_modified_two[j][i];
+                }
+            }
+        }
+        for (i = 1; i <= rows; i++)
+        {
+            if (S[i][x] == 1)
+            {
+                for (j = x; j <= columns; j++)
+                {
+                    profit_function_modified_one[i][j] = profit_function_modified_two[i][x];
+                }
+            }
+        }
+        
+        /*cout << "Profit function p^1: " << endl;
+        for (i = 1; i <= rows; i++)
+        {
+            for (j = x; j <= columns; j++)
+            {
+                cout << profit_function_modified_one[i][j] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;*/
+        
+        for (i = 1; i <= rows; i++)
+        {
+            for (j = x; j <= columns; j++)
+            {
+                profit_function_modified_two[i][j] = profit_function_modified_two[i][j] - profit_function_modified_one[i][j];
+            }
+        }
+        
+        /*cout << "Profit function p^2: " << endl;
+        for (i = 1; i <= rows; i++)
+        {
+            for (j = x; j <= columns; j++)
+            {
+                cout << profit_function_modified_two[i][j] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;*/
+        
+        // TEMPORARY WORK ARRAY (A - KNAPSACK PROBLEM - ALGORITHM) OUTPUT
+        
+        /*cout << "Temporary work array:" << endl;
+        for (i = 0; i <= rows; i++)
+        {
+            for (j = 0; j <= bin_sizes[x]; j++)
+            {
+                cout << Weight[i][j] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;*/
+        
+        // NUMBER OF CHOSEN ITEMS AT CURRENT ITERATION OUTPUT
+        
+        cout << "Step " << x << " items number: ";
+        for (i = 0; i <= rows; i++)
+        {
+            if (S[i][x] == 1)
+            {
+                cout << i << " ";
+            }
+        }
+        cout << endl << endl;
+    }
+    
+    find_invalid(); // find all choosed jobs
+    
+    int k = 0; // jobs counter
+    int l = 0;
+    
+    for (i = 0; i <= rows; i++) // jobs counting
+    {
+        for (j = 0; j <= columns; j++)
+        {
+            if (S[i][x] == 1)
+            {
+                k++;
+            }
+        }
+    }
+    if (k != jobs_number) // find unused jobs
+    {
+        // SOMETHING HERE
+    }
+    k = 0; // maximal worker number
+    l = 0; // minimal worker number
+    int answer_local = 0;
+    int minimal_local = max_bin_sizes;
+    for (i = 1; i <= columns; i++)
+    {
+        int a = 0;
+        int b = 0;
+        for (j = 1; j <= rows; j++)
+        {
+            if (S[j][i] == 1)
+            {
+                a = a + item_sizes[j][i];
+                b = b + workers_c[i][jobs[1][j]];
+            }
+        }
+        if (work_task == 6 || work_task == 4)
+        {
+            answer_local = answer_local + b;
+        }
+        if (work_task != 6 && work_task != 4 && a > answer_local)
+        {
+            answer_local = a;
+            k = i;
+        }
+        if (work_task != 6 && work_task != 4 && a < minimal_local)
+        {
+            minimal_local = a;
+            l = i;
+        }
+    }
+    int size_local = max_bin_sizes;
+    int size_index_local = 0;
+    for (i = 0; i <= rows; i++)
+    {
+        if (item_sizes[i][k] < size_local)
+        {
+            size_local = item_sizes[i][k];
+            size_index_local = i;
+        }
+    }
+    if (item_sizes[size_index_local][l] < max_bin_sizes)
+    {
+        S[size_index_local][l] = 1;
+        S[size_index_local][k] = 0;
+    }
+    
+    for (i = 0; i <= rows; i++)
+    {
+        delete [] isin[i];
+        delete [] isin_row[i];
+        delete [] isin_step[i];
+        delete [] Weight[i];
+    }
+    
+    delete [] isin;
+    delete [] isin_row;
+    delete [] isin_step;
+    delete [] Weight;
+}
+
 // ----------------------------------------------------------
 // ---------- KNAPSACK PROBLEM REVERSIVE ALGORITHM ----------
 // ----------------------------------------------------------
 
-void Approximation_algorithm :: algorithm_reversive()
+void Approximation_algorithm :: algorithm_reversive() // unworkable
 {
     int i;
     int j;
+    int k = 0;
     
     // INITIALIZING LOCAL ARRAYS
     
@@ -1309,6 +1730,7 @@ void Approximation_algorithm :: algorithm_reversive()
     
     int **item_sizes_reversive = new int*[columns + 1]; // weight of each item
     int **profit_function_reversive = new int*[columns + 1];
+    int *jobs_passed_reversive = new int[rows + 1];
     
     int P_reversive[columns + 1];
     
@@ -1416,6 +1838,7 @@ void Approximation_algorithm :: algorithm_reversive()
         
         int z = -1;
         int y = 0;
+        int l = 0;
         
         for (i = 1; i <= columns; i++)
         {
@@ -1429,6 +1852,22 @@ void Approximation_algorithm :: algorithm_reversive()
                     z = profit_function_reversive[i][x];
                 }
             }
+        }
+        
+        int q = 0;
+        
+        for (i = 1; i <= columns; i++)
+        {
+            if (T_reversive[i] == -1)
+            {
+                q = 1;
+                i = columns;
+            }
+        }
+        
+        if (q == 0)
+        {
+            k = 1;
         }
         
         // CURRENT PROFIT FUNCTION P_j (P_x HERE)
@@ -1463,13 +1902,9 @@ void Approximation_algorithm :: algorithm_reversive()
             {
                 cout << i << " ";
             }
+            //T_reversive[i] = -1;
         }
         cout << endl << endl;
-    }
-    
-    for (i = 0; i <= columns; i++)
-    {
-        delete [] profit_function_reversive[i];
     }
     
     for (i = 0; i <= columns; i++)
@@ -1478,14 +1913,25 @@ void Approximation_algorithm :: algorithm_reversive()
         delete [] isin_row[i];
         delete [] isin_step[i];
         delete [] Weight[i];
+        
+        delete [] S_reversive[i];
+        
+        delete [] item_sizes_reversive[i];
+        delete [] profit_function_reversive[i];
     }
-    
-    delete [] profit_function_reversive;
     
     delete [] isin;
     delete [] isin_row;
     delete [] isin_step;
     delete [] Weight;
+    
+    delete [] bin_sizes_reversive;
+    delete [] S_reversive;
+    delete [] T_reversive;
+    
+    delete [] item_sizes_reversive;
+    delete [] profit_function_reversive;
+    delete [] jobs_passed_reversive;
 }
 
 // INSTRUCTION
@@ -1523,10 +1969,16 @@ int main()
     cout << "Please, choose hours to work:" << endl << "0 -- 8-hours work day (default)" << endl << "1 -- 12-hours work day" << endl << "2 -- 24-hours work day" << endl;
     cin >> work_hours;
     
-    cout << "Please, choose the target function:" << endl << "1 -- Minimal time to do all the tasks" << endl << "2 -- Minimal time to do all the immediate tasks" << endl << "3 -- Minimal time to do all the important tasks" << endl << "4 -- Maximal quality to do all the tasks" << endl << "5 -- Maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance)" << endl << "6 -- Maximal quality to do extra important task (extra important tasks) (3 importance)" << endl << "8 -- Distribution depending on importance of tasks" << endl << "9 -- Distribution depending on deadline of taks" << endl;
+    cout << "Please, choose the target function:" << endl << "1 -- Minimal time to do all the tasks (default)" << endl << "2 -- Minimal time to do all the immediate tasks" << endl << "3 -- Minimal time to do all the important tasks" << endl << "4 -- Maximal quality to do all the tasks" << endl << "5 -- Maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance)" << endl << "6 -- Maximal quality to do extra important task (extra important tasks) (3 importance)" << endl << "8 -- Distribution depending on importance of tasks" << endl << "9 -- Distribution depending on deadline of tasks" << endl << "11 -- The minimum time for completing all tasks (deputy chief 4-hours day (without 3 importance))" << endl;
     cin >> work_task;
     
-    cout << "Please, choose the algorithm:" << endl << "1 -- Algorithm 1 (only) (default)" << endl << "2 -- Algorithm 2 (only)" << endl << "3 -- Algorithm 1 (custom) NOT READY" << endl << "4 -- Algorithm 2 (custom) NOT READY" << endl << "5 - Algorithm 2 (reversive)" << endl;
+    if (work_task == 1 || work_task == 2 || work_task == 5 || work_task == 11)
+    {
+        cout << "Please, choose the work profit function (for target functions 1, 2, 5 and 11):" << endl << "1 -- Minimal time - max profit (default)" << endl << "2 -- Maximal time - max profit" << endl << "3 -- Maximal speed - max profit" << endl << "4 -- Maximal list size - max profit" << endl;
+        cin >> work_function;
+    }
+    
+    cout << "Please, choose the algorithm:" << endl << "1 -- Algorithm 1 (only) (default)" << endl << "2 -- Algorithm 2 (only)" << endl;/* << "3 -- Algorithm 1 (custom) NOT READY" << endl << "4 -- Algorithm 2 (custom) NOT READY" << endl << "5 -- Algorithm 2 (reversive) UNWORKABLE" << endl;*/
     cin >> work_algorithm;
     
     A.forming_profit();
@@ -1540,13 +1992,15 @@ int main()
         case 2:
             A.algorithm_two();
             break;
-        case 3:
+        /*case 3:
+            A.algorithm_one_custom();
             break;
         case 4:
+            A.algorithm_two_custom();
             break;
         case 5:
             A.algorithm_reversive();
-            break;
+            break;*/
         default:
             A.algorithm_one();
             break;
