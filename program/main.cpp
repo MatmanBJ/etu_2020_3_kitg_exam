@@ -1,9 +1,9 @@
 //
 //  main.cpp
 //  Alternative exam
-//  version beta 0.8
-//  Created by Matthew Sobolewski on 27.12.2020.
-//
+//  version release 1.0
+//  Created by Matthew Sobolev
+//  Team: Sobolev Matvey, Stepovik Viktor, Kashapova Olga
 
 #include <iostream>
 #include <stdlib.h>
@@ -22,7 +22,7 @@ const int jobs_number = 32; // general number of jobs (translations)
 const int workers_number = 10; // general number of workers (translators)
 const int languages_number = 7; // general number of languages
 const int work_hours = 0; // number for the work hours coefficient switch case
-const int work_task = 1; // number for the task switch case
+const int work_task = 9; // number for the task switch case
 
 // FUNCTION PROTOTYPES
 
@@ -60,6 +60,8 @@ int main()
     int i;
     int j;
     int x; // current column iteration (sorry, i forgot about 'k' variable)
+    int answer = 0; // answer variable
+    int deadline = 0; // biggest deadline
     
     int current_value;
     int current_row;
@@ -109,6 +111,16 @@ int main()
     int **workers_c = input_data_file(languages_number, workers_c_file); // rows - workers, columns - languages
     int **workers_s = input_data_file(languages_number, workers_s_file); // rows - workers, columns - languages
     float **workers_s_float = new float*[workers_number + 1]; // rows - workers, columns - languages
+    
+    // FINDING MAX OF THE JOBS DEADLINES (FOR CASE 9)
+    
+    for (i = 1; i <= jobs_number; i++) // choosing biggest deadline
+    {
+        if (jobs[5][i] > deadline)
+        {
+            deadline = jobs[5][i];
+        }
+    }
     
     // TRANSLATION INTO THE FLOAT FORMAT FOR THE WORKERS' SPEED WITH SWITCH CASE
     
@@ -195,7 +207,7 @@ int main()
             {
                 for (j = 1; j <= workers_number; j++)
                 {
-                    if (workers_s[j][jobs[1][i]] != 0)
+                    if (workers_s[j][jobs[1][i]] != 0 && (float)jobs[2][i]/workers_s_float[j][jobs[1][i]] <= jobs[5][i])
                     {
                         item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
                     }
@@ -225,21 +237,89 @@ int main()
                 }
             }
             break;
-        case 5: // maximal fast (minimal time) to do extra important task (extra important tasks)
+        case 5: // maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance)
+            cout << "---------- Maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance) ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0 && jobs[4][i] == 3)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                }
+            }
             break;
-        case 6: // maximal quality to do extra important task (extra important tasks)
+        case 6: // maximal quality to do extra important task (extra important tasks) (3 importance)
+            cout << "---------- Maximal quality to do extra important task (extra important tasks) (3 importance ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0 && jobs[4][i] == 3)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
+                }
+            }
             break;
         case 7: // maximal equal burden on people
+            cout << "Not realised" << endl;
             break;
         case 8: // distribution depending on importance of tasks
+            cout << "---------- Distribution depending on importance of tasks ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    profit_function[i][j] = jobs[4][i];
+                }
+            }
             break;
         case 9: // distribution depending on deadline of taks
+            cout << "---------- Distribution depending on deadline of taks ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
+                }
+            }
             break;
-        case 10: // minimal time doing all the tasks without limitation of the work time (but less than 36 hours )
+        case 10: // minimal time doing all the tasks without limitation of the work time (but less than 36 hours including time of breaks)
+            cout << "Not realised" << endl;
             break;
-        case 11:
+        case 11: // the minimum time for completing all tasks with the involvement of the deputy head of the department is not more than 4 hours on a standard working day (if the importance of task 3, you can use the maximum)
+            cout << "Not realised" << endl;
             break;
         default: // standart work of the algorithm
+            cout << "Doesn't exist" << endl;
             break;
     }
     
@@ -656,21 +736,36 @@ int main()
     
     // OUTPUT AN ARRAY OF CHOSED ITEMS
     
-    cout << "r\\c ";
+    cout << "Chosed items:" << endl;
     for (i = 1; i <= columns; i++)
     {
-        cout << i << " ";
-    }
-    cout << endl;
-    for (i = 1; i <= rows; i++)
-    {
-        cout << i << ":  ";
-        for (j = 1; j <= columns; j++)
+        int a = 0;
+        int b = 0;
+        cout << "Translator " << i << " jobs: ";
+        for (j = 1; j <= rows; j++)
         {
-            cout << S[i][j] << " ";
+            if (S[j][i] == 1)
+            {
+                a = a + item_sizes[j][i];
+                b = b + workers_c[i][jobs[1][j]];
+                cout << j << " ";
+            }
+        }
+        if (work_task == 6 || work_task == 4)
+        {
+            answer = answer + b;
+        }
+        if (work_task != 6 && work_task != 4 && a > answer)
+        {
+            answer = a;
         }
         cout << endl;
     }
+    cout << endl;
+    
+    // OUTPUT AN ANSWER
+    
+    cout << "Answer: " << answer << endl;
     
     // CLEANING OUR MEMORY FROM DYNAMIC ARRAYS
     
@@ -689,7 +784,7 @@ int main()
         delete [] jobs[i];
     }
     
-    for (i = 0; i <= workers_number; i++)
+    for (i = 0; i <= workers_number; i++) // it may start from "1" (may be a mistake with deleting)
     {
         delete [] workers_c[i];
         delete [] workers_s[i];
