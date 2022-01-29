@@ -1,11 +1,8 @@
 //
 //  main.cpp
 //  Alternative exam
-//  version release 2.2
-//    -- added ability to choose some new profit functions;
-//    -- added "10" target function;
-//    -- time counting (forming) fix;
-//    -- answer value fix;
+//  version release 2.3
+//    -- added a possibility to choose bin size (and solve time tasks!)
 //    -- minor bug fixes.
 //  Created by Matvey Sobolev
 //  Team 7: Sobolev Matvey, Stepovik Viktor, Kashapova Olga
@@ -27,13 +24,13 @@ using namespace std;
 
 const int rows = 32; // general number of rows in array (number of items)
 const int columns = 11; // general number of columns in array (number of knapsacks)
-const int max_bin_sizes = 30; // maximal sizes for bins (days for workers)
 const int jobs_number = 32; // general number of jobs (translations)
 const int workers_number = 11; // general number of workers (translators)
 const int languages_number = 7; // general number of languages
 
 // VALUABLE VARIABLES
 
+int max_bin_sizes = 30; // maximal sizes for bins (days for workers)
 int work_hours = 0; // number for the work hours coefficient switch case
 int work_task = 0; // number for the task switch case
 int work_function = 0; // number for the forming profit function
@@ -281,6 +278,9 @@ void Approximation_algorithm :: forming_profit()
                         case 4:
                             profit_function[i][j] = jobs[2][i];
                             break;
+                        case 5:
+                            profit_function[i][j] = (-1)*(jobs[5][i] - max_bin_sizes - 1);
+                            break;
                         default:
                             profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
                             break;
@@ -319,6 +319,9 @@ void Approximation_algorithm :: forming_profit()
                             break;
                         case 4:
                             profit_function[i][j] = jobs[2][i];
+                            break;
+                        case 5:
+                            profit_function[i][j] = (-1)*(jobs[5][i] - max_bin_sizes - 1);
                             break;
                         default:
                             profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
@@ -417,7 +420,10 @@ void Approximation_algorithm :: forming_profit()
                         case 4:
                             profit_function[i][j] = jobs[2][i];
                             break;
-                        case 5: // "true importance" profit
+                        case 5:
+                            profit_function[i][j] = (-1)*(jobs[5][i] - max_bin_sizes - 1);
+                            break;
+                        case 6: // "true importance" profit
                             profit_function[i][j] = jobs[4][i];
                             break;
                         default:
@@ -509,7 +515,8 @@ void Approximation_algorithm :: forming_profit()
                     {
                         item_sizes[i][j] = bin_sizes[j] + 1;
                     }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
+                    //profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
+                    profit_function[i][j] = (-1)*(jobs[5][i] - max_bin_sizes - 1);
                 }
             }
             break;
@@ -552,6 +559,9 @@ void Approximation_algorithm :: forming_profit()
                             break;
                         case 4:
                             profit_function[i][j] = jobs[2][i];
+                            break;
+                        case 5:
+                            profit_function[i][j] = (-1)*(jobs[5][i] - max_bin_sizes - 1);
                             break;
                         default:
                             profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
@@ -596,6 +606,9 @@ void Approximation_algorithm :: forming_profit()
                         case 4:
                             profit_function[i][j] = jobs[2][i];
                             break;
+                        case 5:
+                            profit_function[i][j] = (-1)*(jobs[5][i] - max_bin_sizes - 1);
+                            break;
                         default:
                             profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
                             break;
@@ -630,6 +643,9 @@ void Approximation_algorithm :: forming_profit()
                             break;
                         case 4:
                             profit_function[i][j] = jobs[2][i];
+                            break;
+                        case 5:
+                            profit_function[i][j] = (-1)*(jobs[5][i] - max_bin_sizes - 1);
                             break;
                         default:
                             profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
@@ -951,6 +967,16 @@ void Approximation_algorithm :: output_result()
     {
         cout << "Answer: " << answer << " days" << endl;
     }
+    
+    int all = 0;
+    for (i = 1; i <= rows ; i++)
+    {
+        for (j = 1; j <= columns; j++)
+        {
+            all = all + S[i][j];
+        }
+    }
+    cout << "Total " << all << "/" << jobs_number << " jobs" << endl;
 }
 
 // ----------------------------------------------------
@@ -1847,17 +1873,15 @@ int main()
 {
     int work_algorithm;
     
-    Approximation_algorithm A;
-    
     cout << "Please, choose hours to work (except '10' target function):" << endl << "0 -- 8-hours work day (default)" << endl << "1 -- 12-hours work day" << endl << "2 -- 24-hours work day" << endl;
     cin >> work_hours;
     
     cout << "Please, choose the target function:" << endl << "1 -- Minimal time to do all the tasks (default)" << endl << "2 -- Minimal time to do all the immediate tasks" << endl << "3 -- Minimal time to do all the important tasks" << endl << "4 -- Maximal quality to do all the tasks" << endl << "5 -- Maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance)" << endl << "6 -- Maximal quality to do extra important task (extra important tasks) (3 importance)" << endl << "8 -- Distribution depending on importance of tasks" << endl << "9 -- Distribution depending on deadline of tasks" << endl << "10 -- Minimal time doing all the tasks without limitation of the work time (but less than 36 hours including all time of breaks -- 6 hours)" << endl << "11 -- The minimum time for completing all tasks (deputy chief 4-hours day (without 3 importance))" << endl;
     cin >> work_task;
     
-    if (work_task == 1 || work_task == 2 || work_task == 5 || work_task == 11)
+    if (work_task == 1 || work_task == 2 || work_task == 5 || work_task == 10 || work_task == 11)
     {
-        cout << "Please, choose the work profit function (for target functions 1, 2, 5 and 11):" << endl << "1 -- Minimal time - max profit (default)" << endl << "2 -- Maximal time - max profit" << endl << "3 -- Maximal speed - max profit" << endl << "4 -- Maximal list size - max profit" << endl << "5 -- Job's importance (only for target function 5)" << endl;
+        cout << "Please, choose the work profit function (for target functions 1, 2, 5, 10 and 11):" << endl << "1 -- Minimal time - max profit (default)" << endl << "2 -- Maximal time - max profit" << endl << "3 -- Maximal speed - max profit" << endl << "4 -- Maximal list size - max profit" << endl << "5 -- Lowest deadline - max profit" << endl << "6 -- Job's importance (only for target function 5)" << endl;
         cin >> work_function;
     }
     else if (work_task == 4 || work_task == 6)
@@ -1866,8 +1890,21 @@ int main()
         cin >> work_function;
     }
     
+    cout << "Please, choose the max bin size from 0 to 30:" << endl;
+    cin >> max_bin_sizes;
+    if (max_bin_sizes < 0)
+    {
+        max_bin_sizes = 0;
+    }
+    else if (max_bin_sizes > 30)
+    {
+        max_bin_sizes = 30;
+    }
+    
     cout << "Please, choose the algorithm:" << endl << "1 -- Algorithm 1 (only) (default)" << endl << "2 -- Algorithm 2 (only)" << endl;/* << "3 -- Algorithm 1 (custom) NOT READY" << endl << "4 -- Algorithm 2 (custom) NOT READY" << endl << "5 -- Algorithm 2 (reversive) UNWORKABLE" << endl;*/
     cin >> work_algorithm;
+    
+    Approximation_algorithm A;
     
     A.forming_profit();
     A.output_current();
