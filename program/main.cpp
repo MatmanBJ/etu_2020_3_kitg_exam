@@ -1,24 +1,29 @@
 //
 //  main.cpp
 //  Alternative exam
-//  version release 2.1
-//  Created by Matthew Sobolev
-//  Team: Sobolev Matvey, Stepovik Viktor, Kashapova Olga
+//  version release 2.2
+//    -- added ability to choose some new profit functions;
+//    -- added "10" target function;
+//    -- time counting (forming) fix;
+//    -- answer value fix;
+//    -- minor bug fixes.
+//  Created by Matvey Sobolev
+//  Team 7: Sobolev Matvey, Stepovik Viktor, Kashapova Olga
 
 #include <iostream>
 #include <stdlib.h>
 #include <cstdlib>
-#include <vector>
-#include <list>
 
 #include <math.h>
 #include <cstring>
 
 using namespace std;
 
-// VALUABLE CONSTANTS (MUST BE CHANGED FOR YOUR CONDITIONS)
+// ---------------------------------------------------------------
+// ---------- VALUABLE (GLOBAL) CONSTANTS AND VARIABLES ----------
+// ---------------------------------------------------------------
 
-// 32 -> 10, 10 -> 32
+// VALUABLE CONSTANTS (MUST BE CHANGED FOR YOUR CONDITIONS)
 
 const int rows = 32; // general number of rows in array (number of items)
 const int columns = 11; // general number of columns in array (number of knapsacks)
@@ -33,9 +38,9 @@ int work_hours = 0; // number for the work hours coefficient switch case
 int work_task = 0; // number for the task switch case
 int work_function = 0; // number for the forming profit function
 
-// FUNCTION PROTOTYPES
-
-// CLASSES
+// ---------------------------------------------------
+// ---------- CLASS (AND DATA) INITIALIZING ----------
+// ---------------------------------------------------
 
 class Approximation_algorithm
 {
@@ -54,8 +59,6 @@ private:
     
     int **item_sizes; // weight of each item
     int **profit_function; // profit of each item
-    //int **profit_function_modified_one; // work function
-    //int **profit_function_modified_two; // work function
     
     int P[rows + 1]; // current profit function for algorithm 2
     
@@ -64,12 +67,11 @@ private:
     int **workers_s; // rows - workers, columns - languages
     float **workers_s_float; // rows - workers, columns - languages
     
-public:
     char** simple_split(char *str, int length, char separator);
     int** input_data_file (int local_size, char* local_name);
     
+public:
     void forming_profit();
-    void forming_profit_reversive();
     void output_current();
     void find_invalid();
     void output_result();
@@ -89,8 +91,9 @@ public:
 
 Approximation_algorithm :: Approximation_algorithm()
 {
+    // INITIALIZING DYNAMIC ARRAYS FOR EFFICIENT APPROXIMATION
+    
     int i;
-    int j;
     
     bin_sizes = new int[columns + 1]; // general capacity of bins (workers)
     S = new int*[rows + 1]; // items (objects) chosed at all/in general
@@ -98,8 +101,6 @@ Approximation_algorithm :: Approximation_algorithm()
     
     item_sizes = new int*[rows + 1]; // weight of each item
     profit_function = new int*[rows + 1]; // profit of each item
-    //profit_function_modified_one = new int*[rows + 1]; // work function
-    //profit_function_modified_two = new int*[rows + 1]; // work function
     
     for (i = 0; i <= rows; i++) // creating dynamic double arrays
     {
@@ -108,8 +109,6 @@ Approximation_algorithm :: Approximation_algorithm()
         
         item_sizes[i] = new int[columns + 1];
         profit_function[i] = new int[columns + 1];
-        //profit_function_modified_one[i] = new int[columns + 1];
-        //profit_function_modified_two[i] = new int[columns + 1];
     }
     
     // BIN SIZES INITIALIZATION (DAYS FOR EACH WORKER)
@@ -170,8 +169,6 @@ Approximation_algorithm :: ~Approximation_algorithm()
         
         delete [] item_sizes[i];
         delete [] profit_function[i];
-        //delete [] profit_function_modified_one[i];
-        //delete [] profit_function_modified_two[i];
     }
     
     for (i = 0; i <= 5; i++)
@@ -192,8 +189,6 @@ Approximation_algorithm :: ~Approximation_algorithm()
     
     delete [] item_sizes;
     delete [] profit_function;
-    //delete [] profit_function_modified_one;
-    //delete [] profit_function_modified_two;
     
     delete [] jobs;
     delete [] workers_c;
@@ -267,7 +262,6 @@ void Approximation_algorithm :: forming_profit()
                         {
                             item_sizes[i][j] = item_sizes[i][j] + 1;
                         }
-                        cout << item_sizes[i][j] << " ";
                     }
                     else
                     {
@@ -303,6 +297,10 @@ void Approximation_algorithm :: forming_profit()
                     if (workers_s[j][jobs[1][i]] != 0 && (float)jobs[2][i]/workers_s_float[j][jobs[1][i]] <= jobs[5][i])
                     {
                         item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
                     }
                     else
                     {
@@ -338,6 +336,10 @@ void Approximation_algorithm :: forming_profit()
                     if (workers_s[j][jobs[1][i]] != 0 && (float)jobs[2][i]/workers_s_float[j][jobs[1][i]] <= jobs[5][i])
                     {
                         item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
                     }
                     else
                     {
@@ -356,12 +358,30 @@ void Approximation_algorithm :: forming_profit()
                     if (workers_s[j][jobs[1][i]] != 0)
                     {
                         item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
                     }
                     else
                     {
                         item_sizes[i][j] = bin_sizes[j] + 1;
                     }
-                    profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
+                    switch (work_function)
+                    {
+                        case 1: // only capable quality (default)
+                            profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
+                            break;
+                        case 2: // worker's quality
+                            profit_function[i][j] = workers_c[j][jobs[1][i]];
+                            break;
+                        case 3: // job's quality
+                            profit_function[i][j] = jobs[3][i];
+                            break;
+                        default: // only capable quality (default)
+                            profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
+                            break;
+                    }
                 }
             }
             break;
@@ -374,6 +394,146 @@ void Approximation_algorithm :: forming_profit()
                     if (workers_s[j][jobs[1][i]] != 0 && jobs[4][i] == 3)
                     {
                         item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    switch (work_function)
+                    {
+                        case 1:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                        case 2:
+                            profit_function[i][j] = item_sizes[i][j];
+                            break;
+                        case 3:
+                            profit_function[i][j] = (workers_s[j][jobs[1][i]]);
+                            break;
+                        case 4:
+                            profit_function[i][j] = jobs[2][i];
+                            break;
+                        case 5: // "true importance" profit
+                            profit_function[i][j] = jobs[4][i];
+                            break;
+                        default:
+                            profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
+                            break;
+                    }
+                }
+            }
+            break;
+        case 6: // maximal quality to do extra important task (extra important tasks) (3 importance)
+            cout << "---------- Maximal quality to do extra important task (extra important tasks) (3 importance) ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0 && jobs[4][i] == 3)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    switch (work_function)
+                    {
+                        case 1: // only capable quality (default)
+                            profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
+                            break;
+                        case 2: // worker's quality
+                            profit_function[i][j] = workers_c[j][jobs[1][i]];
+                            break;
+                        case 3: // job's quality
+                            profit_function[i][j] = jobs[3][i];
+                            break;
+                        case 4: // "true importance" profit
+                            profit_function[i][j] = jobs[4][i];
+                            break;
+                        default: // only capable quality (default)
+                            profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
+                            break;
+                    }
+                }
+            }
+            break;
+        case 7: // maximal equal burden on people
+            cout << "Not realised" << endl;
+            break;
+        case 8: // distribution depending on importance of tasks
+            cout << "---------- Distribution depending on importance of tasks ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    profit_function[i][j] = jobs[4][i];
+                }
+            }
+            break;
+        case 9: // distribution depending on deadline of taks
+            cout << "---------- Distribution depending on deadline of taks ----------" << endl;
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
+                    }
+                    else
+                    {
+                        item_sizes[i][j] = bin_sizes[j] + 1;
+                    }
+                    profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
+                }
+            }
+            break;
+        case 10: // minimal time doing all the tasks without limitation of the work time (but less than 36 hours including all time of breaks -- 6 hours)
+            cout << "---------- 18-hours work day ----------" << endl;
+            for (i = 1; i <= workers_number; i++)
+            {
+                for (j = 1; j <= languages_number; j++)
+                {
+                    workers_s_float[i][j] = 18*(float)workers_s[i][j]/100;
+                }
+            }
+            cout << "---------- Minimal time doing all the tasks without limitation of the work time (but less than 36 hours including all time of breaks -- 6 hours) ----------" << endl; // count 36 hours + 6*2 = 48 hours = 2 days = (18+6)*2 hours (search it in work day)
+            for (i = 1; i <= jobs_number; i++)
+            {
+                for (j = 1; j <= workers_number; j++)
+                {
+                    if (workers_s[j][jobs[1][i]] != 0)
+                    {
+                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
                     }
                     else
                     {
@@ -400,66 +560,6 @@ void Approximation_algorithm :: forming_profit()
                 }
             }
             break;
-        case 6: // maximal quality to do extra important task (extra important tasks) (3 importance)
-            cout << "---------- Maximal quality to do extra important task (extra important tasks) (3 importance) ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0 && jobs[4][i] == 3)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
-                }
-            }
-            break;
-        case 7: // maximal equal burden on people
-            cout << "Not realised" << endl;
-            break;
-        case 8: // distribution depending on importance of tasks
-            cout << "---------- Distribution depending on importance of tasks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = jobs[4][i];
-                }
-            }
-            break;
-        case 9: // distribution depending on deadline of taks
-            cout << "---------- Distribution depending on deadline of taks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
-                }
-            }
-            break;
-        case 10: // minimal time doing all the tasks without limitation of the work time (but less than 36 hours including time of breaks)
-            cout << "Not realised" << endl;
-            break;
         case 11: // the minimum time for completing all tasks with the involvement of the deputy head of the department is not more than 4 hours on a standard working day (if the importance of task 3, you can use the maximum)
             cout << "---------- The minimum time for completing all tasks (deputy chief 4-hours day (without 3 importance)) ----------" << endl;
             for (i = 1; i <= jobs_number; i++)
@@ -469,6 +569,10 @@ void Approximation_algorithm :: forming_profit()
                     if (workers_s[j][jobs[1][i]] != 0)
                     {
                         item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
+                        if ((float)jobs[2][i]/workers_s_float[j][jobs[1][i]] > (float)(int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]))
+                        {
+                            item_sizes[i][j] = item_sizes[i][j] + 1;
+                        }
                         if ((j == 2 || j == 9) && jobs[4][i] != 3)
                         {
                             item_sizes[i][j] = 2*item_sizes[i][j]; // 4-hours work day
@@ -499,24 +603,6 @@ void Approximation_algorithm :: forming_profit()
                 }
             }
             break;
-        /*case 12:
-            cout << "---------- Distribution depending on deadline of taks ----------" << endl;
-            for (i = 1; i <= workers_number; i++)
-            {
-                for (j = 1; j <= jobs_number; j++)
-                {
-                    if (workers_s[jobs[1][j]][i] != 0)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][j]/workers_s_float[jobs[1][j]][i]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
-                }
-            }
-            break;*/
         default: // standart work of the algorithm (case 1: minimal time to do all the tasks)
             cout << "---------- Minimal time to do all the tasks ----------" << endl;
             for (i = 1; i <= jobs_number; i++)
@@ -551,218 +637,6 @@ void Approximation_algorithm :: forming_profit()
                     }
                 }
             }
-            break;
-    }
-}
-
-// -------------------------------------------------------
-// ---------- FORMING REVERSIVE PROFIT FUNCTION ----------
-// -------------------------------------------------------
-
-void Approximation_algorithm :: forming_profit_reversive()
-{
-    int i;
-    int j;
-    
-    // TRANSLATION INTO THE FLOAT FORMAT FOR THE WORKERS' SPEED WITH SWITCH CASE
-    
-    workers_s_float[0] = new float[languages_number + 1];
-    switch (work_hours)
-    {
-        case 1: // 12-hours work day
-            cout << "---------- 12-hours work day ----------" << endl;
-            for (i = 1; i <= workers_number; i++)
-            {
-                workers_s_float[i] = new float[languages_number + 1];
-                for (j = 1; j <= languages_number; j++)
-                {
-                    workers_s_float[i][j] = 12*(float)workers_s[i][j]/100;
-                }
-            }
-            break;
-        case 2: // 24-hours work day (Nanomachines, son©)
-            cout << "---------- 24-hours work day (Nanomachines, son©) ----------" << endl;
-            for (i = 1; i <= workers_number; i++)
-            {
-                workers_s_float[i] = new float[languages_number + 1];
-                for (j = 1; j <= languages_number; j++)
-                {
-                    workers_s_float[i][j] = 24*(float)workers_s[i][j]/100;
-                }
-            }
-            break;
-        default: // 8-hours work day
-            cout << "---------- 8-hours work day ----------" << endl;
-            for (i = 1; i <= workers_number; i++)
-            {
-                workers_s_float[i] = new float[languages_number + 1];
-                for (j = 1; j <= languages_number; j++)
-                {
-                    workers_s_float[i][j] = 8*(float)workers_s[i][j]/100;
-                }
-            }
-            break;
-    }
-    
-    // FORMING ITEM AND PROFIT FUNCTION (ROWS - JOBS, COLUMNS - WORKERS) WITH SWITCH CASE
-    
-    switch (work_task) // PLEASE, CHOOSE THE NUMBER
-    {
-        case 1: // minimal time to do all the tasks
-            cout << "---------- Minimal time to do all the tasks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
-                }
-            }
-            break;
-        case 2: // minimal time to do all the immediate tasks
-            cout << "---------- Minimal time to do all the immediate tasks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0 && (float)jobs[2][i]/workers_s_float[j][jobs[1][i]] <= jobs[5][i])
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
-                }
-            }
-            break;
-        case 3: // minimal time to do all the important tasks
-            cout << "---------- Minimal time to do all the important tasks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0 && (float)jobs[2][i]/workers_s_float[j][jobs[1][i]] <= jobs[5][i])
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = jobs[4][i];
-                }
-            }
-            break;
-        case 4: // maximal quality to do all the tasks
-            cout << "---------- Maximal quality to do all the tasks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
-                }
-            }
-            break;
-        case 5: // maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance)
-            cout << "---------- Maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance) ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0 && jobs[4][i] == 3)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - bin_sizes[j] - 1);
-                }
-            }
-            break;
-        case 6: // maximal quality to do extra important task (extra important tasks) (3 importance)
-            cout << "---------- Maximal quality to do extra important task (extra important tasks) (3 importance ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0 && jobs[4][i] == 3)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = workers_c[j][jobs[1][i]] - jobs[3][i];
-                }
-            }
-            break;
-        case 7: // maximal equal burden on people
-            cout << "Not realised" << endl;
-            break;
-        case 8: // distribution depending on importance of tasks
-            cout << "---------- Distribution depending on importance of tasks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = jobs[4][i];
-                }
-            }
-            break;
-        case 9: // distribution depending on deadline of taks
-            cout << "---------- Distribution depending on deadline of taks ----------" << endl;
-            for (i = 1; i <= jobs_number; i++)
-            {
-                for (j = 1; j <= workers_number; j++)
-                {
-                    if (workers_s[j][jobs[1][i]] != 0)
-                    {
-                        item_sizes[i][j] = (int)((float)jobs[2][i]/workers_s_float[j][jobs[1][i]]);
-                    }
-                    else
-                    {
-                        item_sizes[i][j] = bin_sizes[j] + 1;
-                    }
-                    profit_function[i][j] = (-1)*(item_sizes[i][j] - deadline - 1);
-                }
-            }
-            break;
-        case 10: // minimal time doing all the tasks without limitation of the work time (but less than 36 hours including time of breaks)
-            cout << "Not realised" << endl;
-            break;
-        case 11: // the minimum time for completing all tasks with the involvement of the deputy head of the department is not more than 4 hours on a standard working day (if the importance of task 3, you can use the maximum)
-            cout << "Not realised" << endl;
-            break;
-        default: // standart work of the algorithm
-            cout << "Doesn't exist" << endl;
             break;
     }
 }
@@ -862,11 +736,6 @@ int** Approximation_algorithm :: input_data_file (int local_size, char* local_na
     local_file = nullptr;
     local_separator = ';';
     local_buffer_two = nullptr;
-    
-    //char local_name[160];
-    //fflush(stdin);
-    //printf("Please, print the name of the file: ");
-    //scanf("%s", local_name);
     
     local_file = fopen(local_name, "r");
     
@@ -1026,9 +895,9 @@ void Approximation_algorithm :: find_invalid()
     }
 }
 
-// ----------------------------------------------------
-// ---------- RESULT OUTPUT AND CLEAN MEMORY ----------
-// ----------------------------------------------------
+// -----------------------------------
+// ---------- RESULT OUTPUT ----------
+// -----------------------------------
 
 void Approximation_algorithm :: output_result()
 {
@@ -1056,13 +925,13 @@ void Approximation_algorithm :: output_result()
                 cout << j << " ";
             }
         }
+        cout << "(" << a << " days)";
         if (work_task == 6 || work_task == 4)
         {
             answer = answer + b;
         }
         if (work_task != 6 && work_task != 4)
         {
-            cout << "(" << a << " days)";
             if (a > answer)
             {
                 answer = a;
@@ -1074,7 +943,14 @@ void Approximation_algorithm :: output_result()
     
     // OUTPUT AN ANSWER
     
-    cout << "Answer: " << answer << endl;
+    if (work_task == 6 || work_task == 4)
+    {
+        cout << "Answer: " << answer << " quality" << endl;
+    }
+    if (work_task != 6 && work_task != 4)
+    {
+        cout << "Answer: " << answer << " days" << endl;
+    }
 }
 
 // ----------------------------------------------------
@@ -1091,16 +967,19 @@ void Approximation_algorithm :: algorithm_one()
     int **isin_step = new int*[rows + 1];
     int **Weight = new int*[rows + 1];
     
+    int **profit_function_modified_one = new int*[rows + 1]; // work function
+    int **profit_function_modified_two = new int*[rows + 1]; // work function
+    
     for (i = 0; i <= rows; i++)
     {
         isin[i] = new int[max_bin_sizes + 1];
         isin_row[i] = new int[max_bin_sizes + 1];
         isin_step[i] = new int[max_bin_sizes + 1];
         Weight[i] = new int[max_bin_sizes + 1];
+        
+        profit_function_modified_one[i] = new int[columns + 1]; // work function
+        profit_function_modified_two[i] = new int[columns + 1]; // work function
     }
-    
-    int profit_function_modified_one [rows + 1][columns + 1]; // work function
-    int profit_function_modified_two [rows + 1][columns + 1]; // work function
     
     // SETTIN' TO INITIAL ARRAY VALUES WORK ARRAYS
     
@@ -1276,12 +1155,18 @@ void Approximation_algorithm :: algorithm_one()
         delete [] isin_row[i];
         delete [] isin_step[i];
         delete [] Weight[i];
+        
+        delete [] profit_function_modified_one[i]; // work function
+        delete [] profit_function_modified_two[i]; // work function
     }
     
     delete [] isin;
     delete [] isin_row;
     delete [] isin_step;
     delete [] Weight;
+    
+    delete [] profit_function_modified_one; // work function
+    delete [] profit_function_modified_two; // work function
 }
 
 // ----------------------------------------------------
@@ -1386,17 +1271,17 @@ void Approximation_algorithm :: algorithm_two()
         
         // CURRENT PROFIT FUNCTION P_j (P_x HERE)
         
-        cout << "Profit function P_j (P_x): " << endl;
+        /*cout << "Profit function P_j (P_x): " << endl;
         for (i = 1; i <= rows; i++)
         {
             cout << P[i];
             cout << endl;
         }
-        cout << endl;
+        cout << endl;*/
         
         // TEMPORARY WORK ARRAY (A - KNAPSACK PROBLEM - ALGORITHM) OUTPUT
         
-        cout << "Temporary work array:" << endl;
+        /*cout << "Temporary work array:" << endl;
         for (i = 0; i <= rows; i++)
         {
             for (j = 0; j <= bin_sizes[x]; j++)
@@ -1405,7 +1290,7 @@ void Approximation_algorithm :: algorithm_two()
             }
             cout << endl;
         }
-        cout << endl;
+        cout << endl;*/
         
         // NUMBER OF CHOSEN ITEMS AT CURRENT ITERATION OUTPUT
         
@@ -1954,27 +1839,30 @@ void Approximation_algorithm :: algorithm_reversive() // unworkable
 // Speed matrix ("workers_s.txt" file):
 // each row - worker, each column - language, "0" means "doesn't exist"
 
+// -----------------------------------
+// ---------- MAIN FUNCTION ----------
+// -----------------------------------
+
 int main()
 {
-    // --------------------------------------------------------------
-    // ---------- DATA INPUT, INITIALIZING AND PREPARATION ----------
-    // --------------------------------------------------------------
-    
-    // INITIALIZING ARRAYS FOR EFFICIENT APPROXIMATION
-    
     int work_algorithm;
     
     Approximation_algorithm A;
     
-    cout << "Please, choose hours to work:" << endl << "0 -- 8-hours work day (default)" << endl << "1 -- 12-hours work day" << endl << "2 -- 24-hours work day" << endl;
+    cout << "Please, choose hours to work (except '10' target function):" << endl << "0 -- 8-hours work day (default)" << endl << "1 -- 12-hours work day" << endl << "2 -- 24-hours work day" << endl;
     cin >> work_hours;
     
-    cout << "Please, choose the target function:" << endl << "1 -- Minimal time to do all the tasks (default)" << endl << "2 -- Minimal time to do all the immediate tasks" << endl << "3 -- Minimal time to do all the important tasks" << endl << "4 -- Maximal quality to do all the tasks" << endl << "5 -- Maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance)" << endl << "6 -- Maximal quality to do extra important task (extra important tasks) (3 importance)" << endl << "8 -- Distribution depending on importance of tasks" << endl << "9 -- Distribution depending on deadline of tasks" << endl << "11 -- The minimum time for completing all tasks (deputy chief 4-hours day (without 3 importance))" << endl;
+    cout << "Please, choose the target function:" << endl << "1 -- Minimal time to do all the tasks (default)" << endl << "2 -- Minimal time to do all the immediate tasks" << endl << "3 -- Minimal time to do all the important tasks" << endl << "4 -- Maximal quality to do all the tasks" << endl << "5 -- Maximal fast (minimal time) to do extra important task (extra important tasks) (3 importance)" << endl << "6 -- Maximal quality to do extra important task (extra important tasks) (3 importance)" << endl << "8 -- Distribution depending on importance of tasks" << endl << "9 -- Distribution depending on deadline of tasks" << endl << "10 -- Minimal time doing all the tasks without limitation of the work time (but less than 36 hours including all time of breaks -- 6 hours)" << endl << "11 -- The minimum time for completing all tasks (deputy chief 4-hours day (without 3 importance))" << endl;
     cin >> work_task;
     
     if (work_task == 1 || work_task == 2 || work_task == 5 || work_task == 11)
     {
-        cout << "Please, choose the work profit function (for target functions 1, 2, 5 and 11):" << endl << "1 -- Minimal time - max profit (default)" << endl << "2 -- Maximal time - max profit" << endl << "3 -- Maximal speed - max profit" << endl << "4 -- Maximal list size - max profit" << endl;
+        cout << "Please, choose the work profit function (for target functions 1, 2, 5 and 11):" << endl << "1 -- Minimal time - max profit (default)" << endl << "2 -- Maximal time - max profit" << endl << "3 -- Maximal speed - max profit" << endl << "4 -- Maximal list size - max profit" << endl << "5 -- Job's importance (only for target function 5)" << endl;
+        cin >> work_function;
+    }
+    else if (work_task == 4 || work_task == 6)
+    {
+        cout << "Please, choose the work profit function (for target functions 4 and 6):" << endl << "1 -- Only capable quality (default)" << endl << "2 -- Worker's quality" << endl << "3 -- Job's quality" << endl << "4 -- Job's importance (only for target function 6)" << endl;
         cin >> work_function;
     }
     
