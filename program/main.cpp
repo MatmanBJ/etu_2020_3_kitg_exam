@@ -1,7 +1,7 @@
 //
 //  main.cpp
 //  Alternative exam
-//  version alpha 0.01
+//  version alpha 0.05
 //  Created by Matthew Sobolewski on 27.12.2020.
 //
 
@@ -106,24 +106,17 @@ int main()
     }
     cout << endl;*/
     
+    // ---------- KNAPSACK PROBLEM ALGORITHM (B) ----------
+    
     int item_sizes[10][10];
     int bin_sizes[10];
     int profit_function[10][10];
-    int S[10][10];
+    int profit_function_modified_one[10][10];
+    int profit_function_modified_two[10][10];
+    int S[10];
     int x;
     int y;
     int z;
-    
-    for (i = 0; i <= 4; i++)
-    {
-        item_sizes[0][i] = 0;
-        profit_function[0][i] = 0;
-    }
-    for (i = 0; i <= 3; i++)
-    {
-        item_sizes[i][0] = 0;
-        profit_function[i][0] = 0;
-    }
     
     item_sizes[1][1] = 1;
     item_sizes[1][2] = 1;
@@ -162,6 +155,26 @@ int main()
     bin_sizes[2] = 3;
     bin_sizes[3] = 4;
     
+    for (i = 0; i <= 4; i++)
+    {
+        item_sizes[i][0] = 0;
+        profit_function[i][0] = 0;
+    }
+    for (i = 0; i <= 3; i++)
+    {
+        item_sizes[0][i] = 0;
+        profit_function[0][i] = 0;
+    }
+    
+    for (i = 0; i <= 4; i++)
+    {
+        for (j = 0; j <= 3; j++)
+        {
+            profit_function_modified_one[i][j] = profit_function[i][j];
+            profit_function_modified_two[i][j] = profit_function[i][j];
+        }
+    }
+    
     cout << "Item sizes:" << endl;
     for (i = 1; i <= 4; i++)
     {
@@ -182,7 +195,7 @@ int main()
         cout << endl;
     }
     
-    for (x = 1; x <= 1; x++) // dolzhno byt' tri!!!!!!!!!!!!!!!!
+    for (x = 1; x <= 3; x++) // dolzhno byt' tri!!!!!!!!!!!!!!!!
     {
         for (i = 0; i <= bin_sizes[x]; i++)
         {
@@ -202,8 +215,8 @@ int main()
                 }
                 else
                 {
-                    Weight[i][j] = fmax(Weight[i - 1][j], Weight[i - 1][j - item_sizes[i][x]] + profit_function[i][x]);
-                    if (Weight[i - 1][j] >= Weight[i - 1][j - item_sizes[i][x]] + profit_function[i][x])
+                    Weight[i][j] = fmax(Weight[i - 1][j], Weight[i - 1][j - item_sizes[i][x]] + profit_function_modified_two[i][x]);
+                    if (Weight[i - 1][j] >= Weight[i - 1][j - item_sizes[i][x]] + profit_function_modified_two[i][x])
                     {
                         isin_row[i][j] = isin_row[i - 1][j];
                         isin_step[i][j] = isin_step[i - 1][j];
@@ -227,23 +240,106 @@ int main()
             cout << endl;
         }
         
+        for (i = 0; i <= 4; i++)
+        {
+            S[i] = 0;
+        }
+        
         current_value = isin[4][bin_sizes[x]];
         current_row = isin_row[4][bin_sizes[x]];
         current_step = isin_step[4][bin_sizes[x]];
         while (current_value != 0)
         {
-            N.push_back(current_value);
+            //N.push_back(current_value);
+            S[current_value] = 1;
             current_value = isin[current_row][current_step];
             int a = isin_row[current_row][current_step];
             current_step = isin_step[current_row][current_step];
             current_row = a;
         }
         
+        for (i = x; i <= 3; i++)
+        {
+            if (i != x)
+            {
+                for (j = 1; j <= 4; j++)
+                {
+                    profit_function_modified_one[j][i] = 0;
+                }
+            }
+        }
+        for (i = 1; i <= 4; i++)
+        {
+            if (S[i] != 1)
+            {
+                for (j = x; j <= 3; j++)
+                {
+                    profit_function_modified_one[i][j] = 0;
+                }
+            }
+        }
+        
+        for (i = x; i <= 3; i++)
+        {
+            if (i == x)
+            {
+                for (j = 1; j <= 4; j++)
+                {
+                    profit_function_modified_one[j][i] = profit_function_modified_two[j][i];
+                }
+            }
+        }
+        for (i = 1; i <= 4; i++)
+        {
+            if (S[i] == 1)
+            {
+                for (j = x; j <= 3; j++)
+                {
+                    profit_function_modified_one[i][j] = profit_function_modified_two[i][x];
+                }
+            }
+        }
+        
+        cout << "Profit function p^1: " << endl;
+        for (i = 1; i <= 4; i++)
+        {
+            for (j = x; j <= 3; j++)
+            {
+                cout << profit_function_modified_one[i][j] << " ";
+            }
+            cout << endl;
+        }
+        
+        for (i = 1; i <= 4; i++)
+        {
+            for (j = x; j <= 3; j++)
+            {
+                profit_function_modified_two[i][j] = profit_function_modified_two[i][j] - profit_function_modified_one[i][j];
+            }
+        }
+        
+        cout << "Profit function p^2: " << endl;
+        for (i = 1; i <= 4; i++)
+        {
+            for (j = x; j <= 3; j++)
+            {
+                cout << profit_function_modified_two[i][j] << " ";
+            }
+            cout << endl;
+        }
+        
         cout << "Items number: ";
-        while (!N.empty())
+        /*while (!N.empty())
         {
             cout << N.front() << " ";
             N.pop_front();
+        }*/
+        for (i = 0; i <= 4; i++)
+        {
+            if (S[i] == 1)
+            {
+                cout << i << " ";
+            }
         }
         cout << endl;
     }
