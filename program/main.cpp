@@ -1,7 +1,7 @@
 //
 //  main.cpp
 //  Alternative exam
-//  version release 1.0
+//  version release 1.1
 //  Created by Matthew Sobolev
 //  Team: Sobolev Matvey, Stepovik Viktor, Kashapova Olga
 
@@ -10,6 +10,9 @@
 #include <cstdlib>
 #include <vector>
 #include <list>
+
+#include <math.h>
+#include <cstring>
 
 using namespace std;
 
