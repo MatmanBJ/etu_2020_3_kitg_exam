@@ -1,7 +1,7 @@
 //
 //  main.cpp
 //  Alternative exam
-//  version release 1.1
+//  version release 1.2
 //  Created by Matthew Sobolev
 //  Team: Sobolev Matvey, Stepovik Viktor, Kashapova Olga
 
@@ -32,36 +32,11 @@ const int work_task = 9; // number for the task switch case
 char** simple_split(char *str, int length, char separator);
 int** input_data_file (int local_size, char* local_name);
 
-// INSTRUCTION
+// CLASSES
 
-// for constants (you see them above):
-// rows and columns are variablef for the algorithm
-// max_bin_sizes are for our task
-// jobs_number, workers_number, languages_number are for our task too and used before algorithm!!!
-
-// for jobs ("jobs.txt" file):
-// english - 1; german - 2; french - 3; spanish - 4; italian - 5; portugal - 6; polish - 7
-// second row - size
-// third row - complexity
-// fourth row - importance
-// fifth row - days
-
-// for workers:
-// Complexity matrix ("workers_c.txt" file):
-// each row - worker, each column - language, "0" means "doesn't exist"
-// Speed matrix ("workers_s.txt" file):
-// each row - worker, each column - language, "0" means "doesn't exist"
-
-int main()
+class Approximation_algorithm
 {
-    // --------------------------------------------------------------
-    // ---------- DATA INPUT, INITIALIZING AND PREPARATION ----------
-    // --------------------------------------------------------------
-    
-    // INITIALIZING ARRAYS FOR EFFICIENT APPROXIMATION
-    
-    int i;
-    int j;
+private:
     int x; // current column iteration (sorry, i forgot about 'k' variable)
     int answer = 0; // answer variable
     int deadline = 0; // biggest deadline
@@ -75,16 +50,53 @@ int main()
     int isin_step[rows + 1][max_bin_sizes + 1];
     int Weight[rows + 1][max_bin_sizes + 1];
     
-    int *bin_sizes = new int[columns + 1]; // general capacity of bins (workers)
-    int **S = new int*[rows + 1]; // items (objects) chosed at all/in general
-    int *T = new int[rows + 1]; // items (objects) passed in general
+    int *bin_sizes; // general capacity of bins (workers)
+    int **S; // items (objects) chosed at all/in general
+    int *T; // items (objects) passed in general
     
-    int **item_sizes = new int*[rows + 1]; // weight of each item
-    int **profit_function = new int*[rows + 1]; // profit of each item
-    int **profit_function_modified_one = new int*[rows + 1]; // work function
-    int **profit_function_modified_two = new int*[rows + 1]; // work function
+    int **item_sizes; // weight of each item
+    int **profit_function; // profit of each item
+    int **profit_function_modified_one; // work function
+    int **profit_function_modified_two; // work function
     
     int P[rows + 1]; // current profit function for algorithm 2
+    
+    int **jobs; // rows - values, columns - jobs
+    int **workers_c; // rows - workers, columns - languages
+    int **workers_s; // rows - workers, columns - languages
+    float **workers_s_float; // rows - workers, columns - languages
+    
+public:
+    char** simple_split(char *str, int length, char separator);
+    int** input_data_file (int local_size, char* local_name);
+    
+    void forming_profit();
+    void output_current();
+    void output_result();
+    void algorithm_one();
+    void algorithm_two();
+    
+    Approximation_algorithm();
+    ~Approximation_algorithm();
+};
+
+// ---------------------------------
+// ---------- CONSTRUCTOR ----------
+// ---------------------------------
+
+Approximation_algorithm :: Approximation_algorithm()
+{
+    int i;
+    int j;
+    
+    bin_sizes = new int[columns + 1]; // general capacity of bins (workers)
+    S = new int*[rows + 1]; // items (objects) chosed at all/in general
+    T = new int[rows + 1]; // items (objects) passed in general
+    
+    item_sizes = new int*[rows + 1]; // weight of each item
+    profit_function = new int*[rows + 1]; // profit of each item
+    profit_function_modified_one = new int*[rows + 1]; // work function
+    profit_function_modified_two = new int*[rows + 1]; // work function
     
     for (i = 0; i <= rows; i++) // creating dynamic double arrays
     {
@@ -110,10 +122,10 @@ int main()
     char workers_c_file [] = {'w', 'o', 'r', 'k', 'e', 'r', 's', '_', 'c', '.', 't', 'x', 't', '\0'};
     char workers_s_file [] = {'w', 'o', 'r', 'k', 'e', 'r', 's', '_', 's', '.', 't', 'x', 't', '\0'};
     
-    int **jobs = input_data_file(jobs_number, jobs_file); // rows - values, columns - jobs
-    int **workers_c = input_data_file(languages_number, workers_c_file); // rows - workers, columns - languages
-    int **workers_s = input_data_file(languages_number, workers_s_file); // rows - workers, columns - languages
-    float **workers_s_float = new float*[workers_number + 1]; // rows - workers, columns - languages
+    jobs = input_data_file(jobs_number, jobs_file); // rows - values, columns - jobs
+    workers_c = input_data_file(languages_number, workers_c_file); // rows - workers, columns - languages
+    workers_s = input_data_file(languages_number, workers_s_file); // rows - workers, columns - languages
+    workers_s_float = new float*[workers_number + 1]; // rows - workers, columns - languages
     
     // FINDING MAX OF THE JOBS DEADLINES (FOR CASE 9)
     
@@ -125,8 +137,90 @@ int main()
         }
     }
     
+    // SETTIN' TO ZERO ARRAY VALUES (IMPORTANT STAGE FROM ALGORITHM)
+    
+    for (i = 0; i <= rows; i++)
+    {
+        item_sizes[i][0] = 0;
+        profit_function[i][0] = 0;
+    }
+    for (i = 0; i <= columns; i++)
+    {
+        item_sizes[0][i] = 0;
+        profit_function[0][i] = 0;
+    }
+    
+    // SETTIN' TO INITIAL ARRAY VALUES WORK ARRAYS
+    
+    for (i = 0; i <= rows; i++)
+    {
+        for (j = 0; j <= columns; j++)
+        {
+            profit_function_modified_one[i][j] = profit_function[i][j];
+            profit_function_modified_two[i][j] = profit_function[i][j];
+        }
+    }
+}
+
+// --------------------------------
+// ---------- DESTRUCTOR ----------
+// --------------------------------
+
+Approximation_algorithm :: ~Approximation_algorithm()
+{
+    int i;
+    
+    // CLEANING OUR MEMORY FROM DYNAMIC ARRAYS
+    
+    for (i = 0; i <= rows; i++)
+    {
+        delete [] S[i];
+        
+        delete [] item_sizes[i];
+        delete [] profit_function[i];
+        delete [] profit_function_modified_one[i];
+        delete [] profit_function_modified_two[i];
+    }
+    
+    for (i = 0; i <= 5; i++)
+    {
+        delete [] jobs[i];
+    }
+    
+    for (i = 0; i <= workers_number; i++) // it may start from "1" (may be a mistake with deleting)
+    {
+        delete [] workers_c[i];
+        delete [] workers_s[i];
+        delete [] workers_s_float[i];
+    }
+    
+    delete [] bin_sizes;
+    delete [] S;
+    delete [] T;
+    
+    delete [] item_sizes;
+    delete [] profit_function;
+    delete [] profit_function_modified_one;
+    delete [] profit_function_modified_two;
+    
+    delete [] jobs;
+    delete [] workers_c;
+    delete [] workers_s;
+    delete [] workers_s_float;
+}
+
+// ---------------------------------------------
+// ---------- FORMING PROFIT FUNCTION ----------
+// ---------------------------------------------
+
+void Approximation_algorithm :: forming_profit()
+{
+    int i;
+    int j;
+    
     // TRANSLATION INTO THE FLOAT FORMAT FOR THE WORKERS' SPEED WITH SWITCH CASE
     
+    workers_s_float[0] = new float[languages_number + 1];
     switch (work_hours)
     {
         case 1: // 12-hours work day
@@ -325,34 +419,157 @@ int main()
             cout << "Doesn't exist" << endl;
             break;
     }
+}
+
+// ----------------------------------
+// ---------- SIMPLE SPLIT ----------
+// ----------------------------------
+
+char** Approximation_algorithm :: simple_split(char *str, int length, char separator)
+{
+    char **string_array;
+    int i;
+    int j;
+    int k;
+    int m;
+    int key;
+    int count;
     
-    // SETTIN' TO ZERO ARRAY VALUES (IMPORTANT STAGE FROM ALGORITHM)
+    string_array = nullptr;
     
-    for (i = 0; i <= rows; i++)
+    for (j = 0, m = 0; j < length; j++)
     {
-        item_sizes[i][0] = 0;
-        profit_function[i][0] = 0;
-    }
-    for (i = 0; i <= columns; i++)
-    {
-        item_sizes[0][i] = 0;
-        profit_function[0][i] = 0;
-    }
-    
-    // SETTIN' TO INITIAL ARRAY VALUES WORK ARRAYS
-    
-    for (i = 0; i <= rows; i++)
-    {
-        for (j = 0; j <= columns; j++)
+        if (str[j] == separator)
         {
-            profit_function_modified_one[i][j] = profit_function[i][j];
-            profit_function_modified_two[i][j] = profit_function[i][j];
+            m = m + 1;
         }
     }
+
+    key = 0;
+    string_array = new char*[m + 1];
+    if(string_array != nullptr)
+    {
+        for (i = 0, count = 0; i <= m; i++, count++)
+        {
+            string_array[i] = new char[length];
+            if (string_array[i] != nullptr)
+            {
+                key = 1;
+            }
+            else
+            {
+                key = 0;
+                i = m;
+            }
+        }
+        if (key == 1)
+        {
+            k = 0;
+            m = 0;
+            for (j = 0; j < length; j++)
+            {
+                if (str[j] != separator)
+                {
+                    string_array[m][j - k] = str[j];
+                }
+                else
+                {
+                    string_array[m][j - k] = '\0';
+                    k = j + 1;
+                    m = m + 1;
+                }
+            }
+        }
+        else
+        {
+            for (i = 0; i < count; i++)
+            {
+                delete [] string_array[i];
+            }
+            delete [] string_array;
+        }
+     }
+    return string_array;
+}
+
+// -------------------------------------
+// ---------- INPUT DATA FILE ----------
+// -------------------------------------
+
+int** Approximation_algorithm :: input_data_file (int local_size, char* local_name)
+{
+    int i;
+    int j;
+    int n;
+    int local_length;
+    int **local_numbers;
+    FILE* local_file;
+    char local_separator;
+    char local_buffer[160];
+    char **local_buffer_two;
     
-    // -----------------------------------------
-    // ---------- OUTPUT CURRENT DATA ----------
-    // -----------------------------------------
+    i = 0;
+    j = 0;
+    n = 0;
+    local_length = 0;
+    local_numbers = nullptr;
+    local_file = nullptr;
+    local_separator = ';';
+    local_buffer_two = nullptr;
+    
+    //char local_name[160];
+    //fflush(stdin);
+    //printf("Please, print the name of the file: ");
+    //scanf("%s", local_name);
+    
+    local_file = fopen(local_name, "r");
+    
+    if (local_file != nullptr)
+    {
+        while (fgets(local_buffer, 160, local_file) != nullptr)
+        {
+            n = n + 1;
+        }
+        local_numbers = new int*[n + 1];
+        rewind(local_file);
+        for (i = 1; i <= n; i++)
+        {
+            fgets(local_buffer, 160, local_file);
+            local_length = (int)strlen(local_buffer);
+            local_buffer[local_length - 1] = '\0';
+            local_buffer_two = simple_split(local_buffer, local_length, local_separator);
+            if (local_buffer_two != nullptr)
+            {
+                local_numbers[i] = new int[local_size + 1];
+                for (j = 1; j <= local_size; j++)
+                {
+                    local_numbers[i][j] = atoi(local_buffer_two[j - 1]);
+                    delete [] local_buffer_two[j - 1];
+                }
+                delete [] local_buffer_two;
+            }
+            else
+            {
+                cout << "Error at data reading!\n";
+            }
+        }
+        fclose(local_file);
+    }
+    else
+    {
+        cout << "File hasn't been found!\n";
+    }
+    return local_numbers;
+}
+
+// -----------------------------------------
+// ---------- OUTPUT CURRENT DATA ----------
+// -----------------------------------------
+
+void Approximation_algorithm :: output_current()
+{
+    int i;
+    int j;
     
     // JOBS VALUES OUTPUT
     
@@ -437,10 +654,75 @@ int main()
         cout << endl;
     }
     cout << endl;
+}
+
+// ----------------------------------------------------
+// ---------- RESULT OUTPUT AND CLEAN MEMORY ----------
+// ----------------------------------------------------
+
+void Approximation_algorithm :: output_result()
+{
+    int i;
+    int j;
     
-    // ----------------------------------------------------
-    // ---------- KNAPSACK PROBLEM ALGORITHM (1) ----------
-    // ----------------------------------------------------
+    // SETTING TO NULL INVALID ITEMS
+    
+    for (i = rows; i >= 1; i--)
+    {
+        for (j = columns; j >= 1; j--)
+        {
+            if (S[i][j] == 1)
+            {
+                for (x = j - 1; x >= 1; x--)
+                {
+                    S[i][x] = 0;
+                }
+            }
+        }
+    }
+    
+    // OUTPUT AN ARRAY OF CHOSED ITEMS
+    
+    cout << "Chosed items:" << endl;
+    for (i = 1; i <= columns; i++)
+    {
+        int a = 0;
+        int b = 0;
+        cout << "Translator " << i << " jobs: ";
+        for (j = 1; j <= rows; j++)
+        {
+            if (S[j][i] == 1)
+            {
+                a = a + item_sizes[j][i];
+                b = b + workers_c[i][jobs[1][j]];
+                cout << j << " ";
+            }
+        }
+        if (work_task == 6 || work_task == 4)
+        {
+            answer = answer + b;
+        }
+        if (work_task != 6 && work_task != 4 && a > answer)
+        {
+            answer = a;
+        }
+        cout << endl;
+    }
+    cout << endl;
+    
+    // OUTPUT AN ANSWER
+    
+    cout << "Answer: " << answer << endl;
+}
+
+// ----------------------------------------------------
+// ---------- KNAPSACK PROBLEM ALGORITHM (1) ----------
+// ----------------------------------------------------
+
+void Approximation_algorithm :: algorithm_one()
+{
+    int i;
+    int j;
     
     for (x = 1; x <= columns; x++)
     {
@@ -598,12 +880,18 @@ int main()
         }
         cout << endl << endl;
     }
+}
+
+// ----------------------------------------------------
+// ---------- KNAPSACK PROBLEM ALGORITHM (2) ----------
+// ----------------------------------------------------
+
+void Approximation_algorithm :: algorithm_two()
+{
+    int i;
+    int j;
     
-    // ----------------------------------------------------
-    // ---------- KNAPSACK PROBLEM ALGORITHM (2) ----------
-    // ----------------------------------------------------
-    
-    /*for (x = 1; x <= columns; x++)
+    for (x = 1; x <= columns; x++)
     {
         for (i = 1; i <= rows; i++)
         {
@@ -715,231 +1003,51 @@ int main()
             }
         }
         cout << endl << endl;
-    }*/
-    
-    // ----------------------------------------------------
-    // ---------- RESULT OUTPUT AND CLEAN MEMORY ----------
-    // ----------------------------------------------------
-    
-    // SETTING TO NULL INVALID ITEMS
-    
-    for (i = rows; i >= 1; i--)
-    {
-        for (j = columns; j >= 1; j--)
-        {
-            if (S[i][j] == 1)
-            {
-                for (x = j - 1; x >= 1; x--)
-                {
-                    S[i][x] = 0;
-                }
-            }
-        }
     }
+}
+
+// INSTRUCTION
+
+// for constants (you see them above):
+// rows and columns are variablef for the algorithm
+// max_bin_sizes are for our task
+// jobs_number, workers_number, languages_number are for our task too and used before algorithm!!!
+
+// for jobs ("jobs.txt" file):
+// english - 1; german - 2; french - 3; spanish - 4; italian - 5; portugal - 6; polish - 7
+// second row - size
+// third row - complexity
+// fourth row - importance
+// fifth row - days
+
+// for workers:
+// Complexity matrix ("workers_c.txt" file):
+// each row - worker, each column - language, "0" means "doesn't exist"
+// Speed matrix ("workers_s.txt" file):
+// each row - worker, each column - language, "0" means "doesn't exist"
+
+int main()
+{
+    // --------------------------------------------------------------
+    // ---------- DATA INPUT, INITIALIZING AND PREPARATION ----------
+    // --------------------------------------------------------------
     
-    // OUTPUT AN ARRAY OF CHOSED ITEMS
+    // INITIALIZING ARRAYS FOR EFFICIENT APPROXIMATION
     
-    cout << "Chosed items:" << endl;
-    for (i = 1; i <= columns; i++)
-    {
-        int a = 0;
-        int b = 0;
-        cout << "Translator " << i << " jobs: ";
-        for (j = 1; j <= rows; j++)
-        {
-            if (S[j][i] == 1)
-            {
-                a = a + item_sizes[j][i];
-                b = b + workers_c[i][jobs[1][j]];
-                cout << j << " ";
-            }
-        }
-        if (work_task == 6 || work_task == 4)
-        {
-            answer = answer + b;
-        }
-        if (work_task != 6 && work_task != 4 && a > answer)
-        {
-            answer = a;
-        }
-        cout << endl;
-    }
-    cout << endl;
+    Approximation_algorithm A;
+    //Approximation_algorithm B;
     
-    // OUTPUT AN ANSWER
+    A.forming_profit();
+    //B.forming_profit();
     
-    cout << "Answer: " << answer << endl;
+    A.output_current();
+    //B.output_current();
     
-    // CLEANING OUR MEMORY FROM DYNAMIC ARRAYS
+    A.algorithm_one();
+    //B.algorithm_two();
     
-    for (i = 0; i <= rows; i++)
-    {
-        delete [] S[i];
-        
-        delete [] item_sizes[i];
-        delete [] profit_function[i];
-        delete [] profit_function_modified_one[i];
-        delete [] profit_function_modified_two[i];
-    }
-    
-    for (i = 0; i <= 5; i++)
-    {
-        delete [] jobs[i];
-    }
-    
-    for (i = 0; i <= workers_number; i++) // it may start from "1" (may be a mistake with deleting)
-    {
-        delete [] workers_c[i];
-        delete [] workers_s[i];
-        delete [] workers_s_float[i];
-    }
-    
-    delete [] bin_sizes;
-    delete [] S;
-    delete [] T;
-    
-    delete [] item_sizes;
-    delete [] profit_function;
-    delete [] profit_function_modified_one;
-    delete [] profit_function_modified_two;
-    
-    delete [] jobs;
-    delete [] workers_c;
-    delete [] workers_s;
-    delete [] workers_s_float;
+    A.output_result();
+    //B.output_result();
     
     return 0;
-}
-
-char** simple_split(char *str, int length, char separator)
-{
-    char **string_array;
-    int i;
-    int j;
-    int k;
-    int m;
-    int key;
-    int count;
-    
-    string_array = nullptr;
-    
-    for (j = 0, m = 0; j < length; j++)
-    {
-        if (str[j] == separator)
-        {
-            m = m + 1;
-        }
-    }
-
-    key = 0;
-    string_array = new char*[m + 1];
-    if(string_array != nullptr)
-    {
-        for (i = 0, count = 0; i <= m; i++, count++)
-        {
-            string_array[i] = new char[length];
-            if (string_array[i] != nullptr)
-            {
-                key = 1;
-            }
-            else
-            {
-                key = 0;
-                i = m;
-            }
-        }
-        if (key == 1)
-        {
-            k = 0;
-            m = 0;
-            for (j = 0; j < length; j++)
-            {
-                if (str[j] != separator)
-                {
-                    string_array[m][j - k] = str[j];
-                }
-                else
-                {
-                    string_array[m][j - k] = '\0';
-                    k = j + 1;
-                    m = m + 1;
-                }
-            }
-        }
-        else
-        {
-            for (i = 0; i < count; i++)
-            {
-                delete [] string_array[i];
-            }
-            delete [] string_array;
-        }
-     }
-    return string_array;
-}
-
-int** input_data_file (int local_size, char* local_name)
-{
-    int i;
-    int j;
-    int n;
-    int local_length;
-    int **local_numbers;
-    FILE* local_file;
-    char local_separator;
-    char local_buffer[160];
-    char **local_buffer_two;
-    
-    i = 0;
-    j = 0;
-    n = 0;
-    local_length = 0;
-    local_numbers = nullptr;
-    local_file = nullptr;
-    local_separator = ';';
-    local_buffer_two = nullptr;
-    
-    //char local_name[160];
-    //fflush(stdin);
-    //printf("Please, print the name of the file: ");
-    //scanf("%s", local_name);
-    
-    local_file = fopen(local_name, "r");
-    
-    if (local_file != nullptr)
-    {
-        while (fgets(local_buffer, 160, local_file) != nullptr)
-        {
-            n = n + 1;
-        }
-        local_numbers = new int*[n + 1];
-        rewind(local_file);
-        for (i = 1; i <= n; i++)
-        {
-            fgets(local_buffer, 160, local_file);
-            local_length = (int)strlen(local_buffer);
-            local_buffer[local_length - 1] = '\0';
-            local_buffer_two = simple_split(local_buffer, local_length, local_separator);
-            if (local_buffer_two != nullptr)
-            {
-                local_numbers[i] = new int[local_size + 1];
-                for (j = 1; j <= local_size; j++)
-                {
-                    local_numbers[i][j] = atoi(local_buffer_two[j - 1]);
-                    delete [] local_buffer_two[j - 1];
-                }
-                delete [] local_buffer_two;
-            }
-            else
-            {
-                cout << "Error at data reading!\n";
-            }
-        }
-        fclose(local_file);
-    }
-    else
-    {
-        cout << "File hasn't been found!\n";
-    }
-    return local_numbers;
 }
